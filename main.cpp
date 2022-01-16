@@ -4,8 +4,8 @@ int main() {
   const int WINDOW_WIDTH{800};
   const int WINDOW_HEIGHT{600};
 
-  const int gravity{1'000};
-  const int characterJumpVelocity{-600};
+  const int gravity{2'000};
+  const int characterJumpVelocity{-1000};
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dapper dasher");
 
@@ -28,11 +28,15 @@ int main() {
   bool characterIsInAir{false};
 
   const int characterGroundPos{WINDOW_HEIGHT - characterHeight};
+  int characterCurrentFrame{};
+  float updateTime{1.0 / 10.0};
+  float runningTime{};
 
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
     const float deltaTime{GetFrameTime()};
+    runningTime += deltaTime;
 
     BeginDrawing();
     ClearBackground(WHITE);
@@ -50,6 +54,16 @@ int main() {
     }
 
     characterPos.y += characterYVelocity * deltaTime;
+
+    if (characterCurrentFrame > 5) {
+      characterCurrentFrame = 0;
+    }
+
+    if (runningTime >= updateTime) {
+      runningTime = 0.0;
+      characterCurrentRec.x = characterCurrentFrame * characterCurrentRec.width;
+      characterCurrentFrame++;
+    }
 
     DrawTextureRec(characterSprite, characterCurrentRec, characterPos, WHITE);
 
