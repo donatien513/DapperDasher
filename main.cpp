@@ -5,31 +5,49 @@ int main() {
   const int WINDOW_HEIGHT{600};
 
   const int gravity{2'000};
-  const int characterJumpVelocity{-1000};
+  const int scarfyJumpVelocity{-1000};
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dapper dasher");
 
-  Texture2D characterSprite = LoadTexture("textures/scarfy.png");
-  Rectangle characterCurrentRec;
-  Vector2 characterPos;
+  /**
+   * @brief N E B U L A
+   * 
+   */
+  Texture2D nebulaSprite = LoadTexture("textures/12_nebula_spritesheet.png");
+  Rectangle nebulaCurrentRec{
+    0.0,
+    0.0,
+    float(nebulaSprite.width / 8),
+    float(nebulaSprite.height / 8)
+  };
+  Vector2 nebulaPosition{
+    float(WINDOW_WIDTH),
+    float(WINDOW_HEIGHT - nebulaCurrentRec.height)
+  };
+  const float nebulaVelocity{-600};
 
-  const int characterWidth{characterSprite.width / 6};
-  const int characterHeight{characterSprite.height};
+  /**
+   * @brief S C A R F Y
+   * 
+   */
+  Texture2D scarfySprite = LoadTexture("textures/scarfy.png");
+  Rectangle scarfyCurrentRec{
+    0.0,
+    0.0, 
+    float(scarfySprite.width / 6),
+    float(scarfySprite.height)
+  };
+  Vector2 scarfyPosition{
+    float(WINDOW_WIDTH / 2 - scarfyCurrentRec.width / 2),
+    float(WINDOW_HEIGHT - scarfyCurrentRec.height)
+  };
 
-  characterCurrentRec.width = characterWidth;
-  characterCurrentRec.height = characterHeight;
-  characterCurrentRec.x = 0;
-  characterCurrentRec.y = 0;
+  int scarfyYVelocity{0};
+  bool scarfyIsInAir{false};
 
-  int characterYVelocity{0};
-  characterPos.x = WINDOW_WIDTH / 2 - characterWidth / 2;
-  characterPos.y = WINDOW_HEIGHT - characterHeight;
-
-  bool characterIsInAir{false};
-
-  const int characterGroundPos{WINDOW_HEIGHT - characterHeight};
-  int characterCurrentFrame{};
-  float updateTime{1.0 / 10.0};
+  const int scarfyGroundPosition{WINDOW_HEIGHT - int(scarfyCurrentRec.height)};
+  int scarfyCurrentFrame{};
+  float updateTime{1.0 / 12.0};
   float runningTime{};
 
   SetTargetFPS(60);
@@ -41,35 +59,59 @@ int main() {
     BeginDrawing();
     ClearBackground(WHITE);
 
-    if (characterPos.y >= characterGroundPos) {
-      characterIsInAir = false;
-      characterYVelocity = 0;
+    /**
+     * @brief A P P L Y   G R A V I T Y
+     * 
+     */
+    if (scarfyPosition.y >= scarfyGroundPosition) {
+      scarfyIsInAir = false;
+      scarfyYVelocity = 0;
     } else {
-      characterIsInAir = true;
-      characterYVelocity += gravity * deltaTime;
+      scarfyIsInAir = true;
+      scarfyYVelocity += gravity * deltaTime;
     }
 
-    if (IsKeyPressed(KEY_SPACE) && !characterIsInAir) {
-      characterYVelocity += characterJumpVelocity;
+    /**
+     * @brief J U M P
+     * 
+     */
+    if (IsKeyPressed(KEY_SPACE) && !scarfyIsInAir) {
+      scarfyYVelocity += scarfyJumpVelocity;
     }
 
-    characterPos.y += characterYVelocity * deltaTime;
+    scarfyPosition.y += scarfyYVelocity * deltaTime;
+    nebulaPosition.x += nebulaVelocity * deltaTime;
 
-    if (characterCurrentFrame > 5) {
-      characterCurrentFrame = 0;
+    /**
+     * @brief S C A R F Y   A N I M A T I O N
+     * 
+     */
+    if (scarfyCurrentFrame > 5) {
+      scarfyCurrentFrame = 0;
     }
-
     if (runningTime >= updateTime) {
       runningTime = 0.0;
-      characterCurrentRec.x = characterCurrentFrame * characterCurrentRec.width;
-      characterCurrentFrame++;
+      scarfyCurrentRec.x = scarfyCurrentFrame * scarfyCurrentRec.width;
+      scarfyCurrentFrame++;
     }
 
-    DrawTextureRec(characterSprite, characterCurrentRec, characterPos, WHITE);
+    /**
+     * @brief D R A W   N E B U L A
+     * 
+     */
+    DrawTextureRec(nebulaSprite, nebulaCurrentRec, nebulaPosition, WHITE);
 
+    /**
+     * @brief D R A W   S C A R F Y
+     * 
+     */
+    DrawTextureRec(scarfySprite, scarfyCurrentRec, scarfyPosition, WHITE);
     EndDrawing();
   }
+
   CloseWindow();
-  UnloadTexture(characterSprite);
+
+  UnloadTexture(scarfySprite);
+  UnloadTexture(nebulaSprite);
   return 0;
 }
