@@ -4,41 +4,58 @@ int main() {
   const int WINDOW_WIDTH{800};
   const int WINDOW_HEIGHT{600};
 
-  const int gravity{1};
+  const int gravity{1'000};
+  const int characterJumpVelocity{-600};
 
-  const int characterWidth{50};
-  const int characterHeight{80};
+  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dapper dasher");
+
+  Texture2D characterSprite = LoadTexture("textures/scarfy.png");
+  Rectangle characterCurrentRec;
+  Vector2 characterPos;
+
+  const int characterWidth{characterSprite.width / 6};
+  const int characterHeight{characterSprite.height};
+
+  characterCurrentRec.width = characterWidth;
+  characterCurrentRec.height = characterHeight;
+  characterCurrentRec.x = 0;
+  characterCurrentRec.y = 0;
 
   int characterYVelocity{0};
-  int characterXpos{WINDOW_WIDTH / 2};
-  int characterYpos{WINDOW_HEIGHT - characterHeight};
+  characterPos.x = WINDOW_WIDTH / 2 - characterWidth / 2;
+  characterPos.y = WINDOW_HEIGHT - characterHeight;
+
+  bool characterIsInAir{false};
 
   const int characterGroundPos{WINDOW_HEIGHT - characterHeight};
 
-
-  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dapper dasher");
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
+    const float deltaTime{GetFrameTime()};
+
     BeginDrawing();
     ClearBackground(WHITE);
 
-    if (characterYpos >= characterGroundPos) {
+    if (characterPos.y >= characterGroundPos) {
+      characterIsInAir = false;
       characterYVelocity = 0;
     } else {
-      characterYVelocity += gravity;
+      characterIsInAir = true;
+      characterYVelocity += gravity * deltaTime;
     }
 
-    if (IsKeyPressed(KEY_SPACE)) {
-      characterYVelocity -= 10;
+    if (IsKeyPressed(KEY_SPACE) && !characterIsInAir) {
+      characterYVelocity += characterJumpVelocity;
     }
 
-    characterYpos += characterYVelocity;
+    characterPos.y += characterYVelocity * deltaTime;
 
-    DrawRectangle(characterXpos, characterYpos, characterWidth, characterHeight, BLUE);
+    DrawTextureRec(characterSprite, characterCurrentRec, characterPos, WHITE);
 
     EndDrawing();
   }
   CloseWindow();
+  UnloadTexture(characterSprite);
   return 0;
 }
