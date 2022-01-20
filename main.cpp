@@ -3,7 +3,7 @@
 struct Element {
   int spriteCount;
   int currentSpriteFrameIndex;
-  Texture2D sprite;
+  Texture2D *sprite;
   Rectangle spriteSlice;
   Vector2 position;
   Vector2 velocity;
@@ -20,46 +20,40 @@ int main() {
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dapper dasher");
 
+  Texture2D scarfySprite{LoadTexture("textures/scarfy.png")};
+  Texture2D nebulaSprite{LoadTexture("textures/12_nebula_spritesheet.png")};
+
   /**
    * @brief N E B U L A
    * 
    */
-  const int numsOfNebulaInX = 8;
-  const int numsOfNebulaInY = 7;
-  const Texture2D nebulaSprite = LoadTexture("textures/12_nebula_spritesheet.png");
-  Rectangle nebulaCurrentRec{
-    0.0,
-    0.0,
-    float(nebulaSprite.width / 8),
-    float(nebulaSprite.height / 8)
-  };
-  Vector2 nebulaPosition{
-    float(WINDOW_WIDTH),
-    float(WINDOW_HEIGHT - nebulaCurrentRec.height)
-  };
-  const Vector2 nebulaVelocity{
-    -200.0,
-    0
-  };
-  Vector2 nebulaCurrentFrame{
-    0.0,
-    0.0
-  };
-  const float nebulaUpdateTime{1.0 / 3.0};
-  float nebulaRunningTime{};
+  Element nebula_1;
+  nebula_1.sprite = &nebulaSprite;
+  nebula_1.currentSpriteFrameIndex = 0;
+  nebula_1.spriteCount = 8;
+  nebula_1.spriteSlice.x = 0.0;
+  nebula_1.spriteSlice.y = 0.0;
+  nebula_1.spriteSlice.width = (*nebula_1.sprite).width / nebula_1.spriteCount;
+  nebula_1.spriteSlice.height = (*nebula_1.sprite).height / nebula_1.spriteCount;
+  nebula_1.position.x = float(WINDOW_WIDTH - 200);
+  nebula_1.position.y = float(WINDOW_HEIGHT - nebula_1.spriteSlice.height);
+  nebula_1.velocity.x = -200.0;
+  nebula_1.velocity.y = 0;
+  nebula_1.updateTime = 1.0 / 12.0;
+  nebula_1.runningTime = 0.0;
 
   /**
    * @brief S C A R F Y
    * 
    */
   Element scarfy;
-  scarfy.sprite = LoadTexture("textures/scarfy.png");
+  scarfy.sprite =&scarfySprite;
   scarfy.currentSpriteFrameIndex = 0;
   scarfy.spriteCount = 6;
   scarfy.spriteSlice.x = 0.0;
   scarfy.spriteSlice.y = 0.0;
-  scarfy.spriteSlice.width = scarfy.sprite.width / scarfy.spriteCount;
-  scarfy.spriteSlice.height = scarfy.sprite.height;
+  scarfy.spriteSlice.width = (*scarfy.sprite).width / scarfy.spriteCount;
+  scarfy.spriteSlice.height = (*scarfy.sprite).height;
   scarfy.position.x = float(WINDOW_WIDTH / 2 - scarfy.spriteSlice.width / 2);
   scarfy.position.y = float(WINDOW_HEIGHT - scarfy.spriteSlice.height);
   scarfy.velocity.x = 0;
@@ -101,23 +95,19 @@ int main() {
     }
 
     scarfy.position.y += scarfy.velocity.y * deltaTime;
-    nebulaPosition.x += nebulaVelocity.x * deltaTime;
+    nebula_1.position.x += nebula_1.velocity.x * deltaTime;
 
     /**
      * @brief N E B U L A   A N I M A T I O N
      * 
      */
-    nebulaRunningTime += deltaTime;
-    if (nebulaRunningTime >= nebulaUpdateTime) {
-      nebulaRunningTime = 0.0;
-      nebulaCurrentRec.x = nebulaCurrentFrame.x * nebulaCurrentRec.width;
-      nebulaCurrentFrame.x++;
-      if (nebulaCurrentFrame.x > numsOfNebulaInX - 1) {
-        nebulaCurrentFrame.x = 0;
-        nebulaCurrentFrame.y++;
-        if (nebulaCurrentFrame.y > numsOfNebulaInY - 1) {
-          nebulaCurrentFrame.y = 0;
-        }
+    nebula_1.runningTime += deltaTime;
+    if (nebula_1.runningTime >= nebula_1.updateTime) {
+      nebula_1.runningTime = 0.0;
+      nebula_1.spriteSlice.x = nebula_1.currentSpriteFrameIndex * nebula_1.spriteSlice.width;
+      nebula_1.currentSpriteFrameIndex++;
+      if (nebula_1.currentSpriteFrameIndex > nebula_1.spriteCount - 1) {
+        nebula_1.currentSpriteFrameIndex = 0;
       }
 
     }
@@ -146,19 +136,19 @@ int main() {
      * @brief D R A W   N E B U L A
      * 
      */
-    DrawTextureRec(nebulaSprite, nebulaCurrentRec, nebulaPosition, WHITE);
+    DrawTextureRec((*nebula_1.sprite), nebula_1.spriteSlice, nebula_1.position, WHITE);
 
     /**
      * @brief D R A W   S C A R F Y
      * 
      */
-    DrawTextureRec(scarfy.sprite, scarfy.spriteSlice, scarfy.position, WHITE);
+    DrawTextureRec((*scarfy.sprite), scarfy.spriteSlice, scarfy.position, WHITE);
     EndDrawing();
   }
 
   CloseWindow();
 
-  UnloadTexture(scarfy.sprite);
-  UnloadTexture(nebulaSprite);
+  UnloadTexture((*scarfy.sprite));
+  UnloadTexture((*nebula_1.sprite));
   return 0;
 }
