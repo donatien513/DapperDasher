@@ -1,14 +1,13 @@
 #include "raylib.h"
 #include<cstdio>
 
-struct Background {
+struct EnvironmentScene {
   Texture2D *texture;
   Vector2 position;
   Vector2 velocity;
   float rotation;
   float scale;
-  float updateTime;
-  float runningTime;
+  float finalSize;
 };
 struct SpriteAnimation {
   int spriteCount;
@@ -44,23 +43,58 @@ int main() {
 
   Texture2D scarfySprite{LoadTexture("textures/scarfy.png")};
   Texture2D nebulaSprite{LoadTexture("textures/12_nebula_spritesheet.png")};
-  Texture2D farBuildings{LoadTexture("textures/far-buildings.png")};
+
+  Texture2D backgroundTexture{LoadTexture("textures/far-buildings.png")};
+  Texture2D midgroundTexture{LoadTexture("textures/back-buildings.png")};
+  Texture2D foregroundTexture{LoadTexture("textures/foreground.png")};
 
   /**
    * @brief B A C K G R O U N D
    * 
    */
-  int farBuildingsBackgroundRepeatCount{2};
-  Background farBuildingsBackground[farBuildingsBackgroundRepeatCount]{};
-  for (int i = 0; i < farBuildingsBackgroundRepeatCount; i++){
-    farBuildingsBackground[i].texture = &farBuildings;
-    farBuildingsBackground[i].velocity.x = -80.0;
-    farBuildingsBackground[i].scale = 3.2;
-    farBuildingsBackground[i].rotation = 0.0;
-    farBuildingsBackground[i].position.x = i * ((*farBuildingsBackground[i].texture).width * farBuildingsBackground[i].scale);
-    farBuildingsBackground[i].position.y = 0;
+  int backgroundRepeatCount{2};
+  EnvironmentScene background[backgroundRepeatCount]{};
+  for (int i = 0; i < backgroundRepeatCount; i++){
+    background[i].texture = &backgroundTexture;
+    background[i].velocity.x = -40.0;
+    background[i].scale = 3.2;
+    background[i].rotation = 0.0;
+    background[i].finalSize = ((*background[i].texture).width * background[i].scale);
+    background[i].position.x = i * background[i].finalSize;
+    background[i].position.y = 0;
   }
   
+  /**
+   * @brief M I D G R O U N D
+   * 
+   */
+  int midgroundRepeatCount{2};
+  EnvironmentScene midground[midgroundRepeatCount]{};
+  for (int i = 0; i < midgroundRepeatCount; i++){
+    midground[i].texture = &midgroundTexture;
+    midground[i].velocity.x = -80.0;
+    midground[i].scale = 3.2;
+    midground[i].rotation = 0.0;
+    midground[i].finalSize = ((*midground[i].texture).width * midground[i].scale);
+    midground[i].position.x = i * midground[i].finalSize;
+    midground[i].position.y = 0;
+  }
+
+  /**
+   * @brief F O R E G R O U N D
+   * 
+   */
+  int foregroundRepeatCount{2};
+  EnvironmentScene foreground[foregroundRepeatCount]{};
+  for (int i = 0; i < foregroundRepeatCount; i++){
+    foreground[i].texture = &foregroundTexture;
+    foreground[i].velocity.x = -160.0;
+    foreground[i].scale = 3.2;
+    foreground[i].rotation = 0.0;
+    foreground[i].finalSize = ((*foreground[i].texture).width * foreground[i].scale);
+    foreground[i].position.x = i * foreground[i].finalSize;
+    foreground[i].position.y = 40;
+  }
 
   /**
    * @brief N E B U L A
@@ -118,13 +152,52 @@ int main() {
      * @brief D R A W   B A C K G R O U N D
      * 
      */
-    for (size_t i = 0; i < farBuildingsBackgroundRepeatCount; i++) {
-      farBuildingsBackground[i].position.x += farBuildingsBackground[i].velocity.x * deltaTime;
+    for (int i = 0; i < backgroundRepeatCount; i++) {
+      background[i].position.x += background[i].velocity.x * deltaTime;
+      if (background[i].position.x <= -(background[i].finalSize)) {
+        background[i].position.x = background[i].finalSize - 2;
+      }
       DrawTextureEx(
-        (*farBuildingsBackground[i].texture),
-        farBuildingsBackground[i].position,
-        farBuildingsBackground[i].rotation,
-        farBuildingsBackground[i].scale,
+        (*background[i].texture),
+        background[i].position,
+        background[i].rotation,
+        background[i].scale,
+        WHITE
+      );
+    }
+
+    /**
+     * @brief D R A W   M I D G R O U N D
+     * 
+     */
+    for (int i = 0; i < midgroundRepeatCount; i++) {
+      midground[i].position.x += midground[i].velocity.x * deltaTime;
+      if (midground[i].position.x <= -(midground[i].finalSize)) {
+        midground[i].position.x = midground[i].finalSize - 2;
+      }
+      DrawTextureEx(
+        (*midground[i].texture),
+        midground[i].position,
+        midground[i].rotation,
+        background[i].scale,
+        WHITE
+      );
+    }
+
+    /**
+     * @brief D R A W   F O R E G R O U N D
+     * 
+     */
+    for (int i = 0; i < foregroundRepeatCount; i++) {
+      foreground[i].position.x += foreground[i].velocity.x * deltaTime;
+      if (foreground[i].position.x <= -(foreground[i].finalSize)) {
+        foreground[i].position.x = foreground[i].finalSize - 4;
+      }
+      DrawTextureEx(
+        (*foreground[i].texture),
+        foreground[i].position,
+        foreground[i].rotation,
+        background[i].scale,
         WHITE
       );
     }
@@ -189,6 +262,8 @@ int main() {
   UnloadTexture(scarfySprite);
   UnloadTexture(nebulaSprite);
 
-  UnloadTexture(farBuildings);
+  UnloadTexture(backgroundTexture);
+  UnloadTexture(midgroundTexture);
+  UnloadTexture(foregroundTexture);
   return 0;
 }
