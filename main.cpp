@@ -5,6 +5,7 @@ struct EnvironmentScene {
   Texture2D *texture;
   Vector2 position;
   Vector2 velocity;
+  Rectangle boundary;
   float rotation;
   float scale;
   float finalSize;
@@ -14,6 +15,7 @@ struct SpriteAnimation {
   int currentSpriteFrameIndex;
   Texture2D *sprite;
   Rectangle spriteSlice;
+  Rectangle boundary;
   Vector2 position;
   Vector2 velocity;
   float updateTime;
@@ -116,6 +118,10 @@ int main() {
     nebulae[i].velocity.y = 0;
     nebulae[i].updateTime = 1.0 / 12.0;
     nebulae[i].runningTime = 0.0;
+    nebulae[i].boundary.x = nebulae[i].position.x;
+    nebulae[i].boundary.y = nebulae[i].position.y;
+    nebulae[i].boundary.width = nebulae[i].spriteSlice.width;
+    nebulae[i].boundary.height = nebulae[i].spriteSlice.height;
   }
 
   /**
@@ -136,14 +142,21 @@ int main() {
   scarfy.velocity.y = 0;
   scarfy.updateTime = 1.0 / 12.0;
   scarfy.runningTime = 0.0;
+  scarfy.boundary.x = scarfy.position.x;
+  scarfy.boundary.y = scarfy.position.y;
+  scarfy.boundary.width = scarfy.spriteSlice.width;
+  scarfy.boundary.height = scarfy.spriteSlice.height;
   bool scarfyIsInTheAir{false};
 
   const int scarfyGroundPosition{WINDOW_HEIGHT - int(scarfy.spriteSlice.height)};
+  float finishLine{nebulae[numberOfNubela - 1].position.x};
+  bool collision{false};
 
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
     float deltaTime{GetFrameTime()};
+    finishLine += nebulae[numberOfNubela - 1].position.x;
 
     BeginDrawing();
     ClearBackground(WHITE);
@@ -201,59 +214,68 @@ int main() {
         WHITE
       );
     }
-    
 
-    /**
-     * @brief A P P L Y   G R A V I T Y
-     * 
-     */
-    if (scarfy.position.y >= scarfyGroundPosition) {
-      scarfyIsInTheAir = false;
-      scarfy.velocity.y = 0;
+    if (collision) {
+      DrawText("Game over", (WINDOW_WIDTH / 3,14), WINDOW_HEIGHT / 2, 84, WHITE);
     } else {
-      scarfyIsInTheAir = true;
-      scarfy.velocity.y += gravity * deltaTime;
-    }
-
-    /**
-     * @brief J U M P
-     * 
-     */
-    if (IsKeyPressed(KEY_SPACE) && !scarfyIsInTheAir) {
-      scarfy.velocity.y += scarfyJumpVelocity;
-    }
-
-    /**
-     * @brief S C A R F Y   A N I M A T I O N
-     * 
-     */
-    scarfy.position.y += scarfy.velocity.y * deltaTime;
-    if (scarfyIsInTheAir) {
-      if (scarfy.spriteSlice.x != 0) {
-        scarfy.spriteSlice.x = 0;
+      /**
+       * @brief A P P L Y   G R A V I T Y
+       * 
+       */
+      if (scarfy.position.y >= scarfyGroundPosition) {
+        scarfyIsInTheAir = false;
+        scarfy.velocity.y = 0;
+      } else {
+        scarfyIsInTheAir = true;
+        scarfy.velocity.y += gravity * deltaTime;
       }
-    } else {
-      loopSpriteInTime(&scarfy, &deltaTime);
-    }
 
-    /**
-     * @brief N E B U L A   A N I M A T I O N    &     D R A W   N E B U L A
-     * 
-     */
-    for (int i = 0; i < numberOfNubela; i++) {
-      nebulae[i].position.x += nebulae[i].velocity.x * deltaTime;
-      nebulae[i].runningTime += deltaTime;
-      if (nebulae[i].runningTime >= nebulae[i].updateTime) {
-        loopSpriteInTime(&nebulae[i], &deltaTime);
+      /**
+       * @brief J U M P
+       * 
+       */
+      if (IsKeyPressed(KEY_SPACE) && !scarfyIsInTheAir) {
+        scarfy.velocity.y += scarfyJumpVelocity;
       }
-      DrawTextureRec((*nebulae[i].sprite), nebulae[i].spriteSlice, nebulae[i].position, WHITE);
-    }
 
-    /**
-     * @brief D R A W   S C A R F Y
-     * 
-     */
-    DrawTextureRec((*scarfy.sprite), scarfy.spriteSlice, scarfy.position, WHITE);
+      /**
+       * @brief S C A R F Y   A N I M A T I O N
+       * 
+       */
+      scarfy.position.y += scarfy.velocity.y * deltaTime;
+      scarfy.boundary.y = scarfy.position.y;
+      if (scarfyIsInTheAir) {
+        if (scarfy.spriteSlice.x != 0) {
+          scarfy.spriteSlice.x = 0;
+        }
+      } else {
+        loopSpriteInTime(&scarfy, &deltaTime);
+      }
+
+      /**
+       * @brief N E B U L A   A N I M A T I O N   &   D R A W   N E B U L A
+       * 
+       */
+      for (int i = 0; i < numberOfNubela; i++) {
+        nebulae[i].position.x += nebulae[i].velocity.x * deltaTime;
+        nebulae[i].boundary.x = nebulae[i].position.x;
+        nebulae[i].runningTime += deltaTime;
+        if (CheckCollisionRecs(scarfy.boundary, nebulae[i].boundary)) {
+          collision = true;
+        }
+        if (nebulae[i].runningTime >= nebulae[i].updateTime) {
+          loopSpriteInTime(&nebulae[i], &deltaTime);
+        }
+        DrawTextureRec((*nebulae[i].sprite), nebulae[i].spriteSlice, nebulae[i].position, WHITE);
+      }
+      finishLine += nebulae[numberOfNubela - 1].velocity.x * deltaTime;
+
+      /**
+       * @brief D R A W   S C A R F Y
+       * 
+       */
+      DrawTextureRec((*scarfy.sprite), scarfy.spriteSlice, scarfy.position, WHITE);
+    }
     EndDrawing();
   }
 
