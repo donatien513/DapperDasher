@@ -102,7 +102,8 @@ int main() {
    * @brief N E B U L A
    * 
    */
-  int numberOfNubela{25};
+  int numberOfNubela{8};
+  int nebulaBoundaryPadding{40};
   SpriteAnimation nebulae[numberOfNubela]{};
   for (int i = 0; i < numberOfNubela; i++) {
     nebulae[i].sprite = &nebulaSprite;
@@ -112,16 +113,16 @@ int main() {
     nebulae[i].spriteSlice.y = 0.0;
     nebulae[i].spriteSlice.width = (*nebulae[i].sprite).width / nebulae[i].spriteCount;
     nebulae[i].spriteSlice.height = (*nebulae[i].sprite).height / nebulae[i].spriteCount;
-    nebulae[i].position.x = float(WINDOW_WIDTH + 100 * i);
+    nebulae[i].position.x = float(WINDOW_WIDTH + (800 * i));
     nebulae[i].position.y = float(WINDOW_HEIGHT - nebulae[i].spriteSlice.height);
-    nebulae[i].velocity.x = -200.0;
+    nebulae[i].velocity.x = -300.0;
     nebulae[i].velocity.y = 0;
     nebulae[i].updateTime = 1.0 / 12.0;
     nebulae[i].runningTime = 0.0;
-    nebulae[i].boundary.x = nebulae[i].position.x;
-    nebulae[i].boundary.y = nebulae[i].position.y;
-    nebulae[i].boundary.width = nebulae[i].spriteSlice.width;
-    nebulae[i].boundary.height = nebulae[i].spriteSlice.height;
+    nebulae[i].boundary.x = nebulae[i].position.x + nebulaBoundaryPadding;
+    nebulae[i].boundary.y = nebulae[i].position.y + nebulaBoundaryPadding;
+    nebulae[i].boundary.width = nebulae[i].spriteSlice.width - nebulaBoundaryPadding;
+    nebulae[i].boundary.height = nebulae[i].spriteSlice.height - nebulaBoundaryPadding;
   }
 
   /**
@@ -156,7 +157,7 @@ int main() {
 
   while (!WindowShouldClose()) {
     float deltaTime{GetFrameTime()};
-    finishLine += nebulae[numberOfNubela - 1].position.x;
+    finishLine = nebulae[numberOfNubela - 1].position.x;
 
     BeginDrawing();
     ClearBackground(WHITE);
@@ -217,6 +218,8 @@ int main() {
 
     if (collision) {
       DrawText("Game over", (WINDOW_WIDTH / 3,14), WINDOW_HEIGHT / 2, 84, WHITE);
+    } else if (scarfy.position.x > finishLine) {
+      DrawText("YOU WIN!!!", (WINDOW_WIDTH / 3,14), WINDOW_HEIGHT / 2, 84, WHITE);
     } else {
       /**
        * @brief A P P L Y   G R A V I T Y
@@ -258,7 +261,7 @@ int main() {
        */
       for (int i = 0; i < numberOfNubela; i++) {
         nebulae[i].position.x += nebulae[i].velocity.x * deltaTime;
-        nebulae[i].boundary.x = nebulae[i].position.x;
+        nebulae[i].boundary.x = nebulae[i].position.x + nebulaBoundaryPadding;
         nebulae[i].runningTime += deltaTime;
         if (CheckCollisionRecs(scarfy.boundary, nebulae[i].boundary)) {
           collision = true;
